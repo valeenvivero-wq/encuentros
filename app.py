@@ -1,6 +1,7 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
+import streamlit.components.v2 as components
 
 # Conectar con Firebase
 if not firebase_admin._apps:
@@ -16,6 +17,30 @@ db = firestore.client()
 encuentro_ref = db.collection("encuentros").document("actual")
 
 st.title("Encuentros")
+notificaciones = components.component(
+    name="notificaciones",
+    html="<button id='activar'>Activar notificaciones</button>",
+    js="""
+    export default function(component) {
+        const boton = component.parentElement.querySelector("#activar");
+
+        boton.onclick = async () => {
+            const permiso = await Notification.requestPermission();
+
+            component.setTriggerValue("permiso", permiso);
+        };
+
+        return () => {};
+    }
+    """
+)
+
+resultado = notificaciones(key="notificaciones")
+
+if resultado.permiso == "granted":
+    st.success("Notificaciones activadas.")
+elif resultado.permiso == "denied":
+    st.warning("Las notificaciones están bloqueadas.")
 
 # Leer siempre el estado actual de Firebase
 documento = encuentro_ref.get()
