@@ -1,4 +1,16 @@
 import streamlit as st
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# Conectar con Firebase
+if not firebase_admin._apps:
+    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+# Referencia al encuentro
+encuentro_ref = db.collection("encuentros").document("actual")
 
 st.title("Encuentros")
 
@@ -9,28 +21,46 @@ hora = st.text_input("Hora")
 lugar = st.text_input("Lugar")
 
 if st.button("Enviar propuesta"):
-    st.session_state["fecha"] = fecha
-    st.session_state["hora"] = hora
-    st.session_state["lugar"] = lugar
-    st.session_state["estado"] = "Pendiente"
+    encuentro_ref.set({
+        "fecha": fecha,
+        "hora": hora,
+        "lugar": lugar,
+        "estado": "Pendiente"
+    })
 
-if "estado" in st.session_state:
+    st.success("Propuesta enviada.")
+
+# Leer la propuesta desde Firestore
+documento = encuentro_ref.get()
+
+if documento.exists:
+    propuesta = documento.to_dict()
+
     st.divider()
 
     st.subheader("Propuesta")
 
-    st.write("Fecha:", st.session_state["fecha"])
-    st.write("Hora:", st.session_state["hora"])
-    st.write("Lugar:", st.session_state["lugar"])
-    st.write("Estado:", st.session_state["estado"])
+    st.write("Fecha:", propuesta["fecha"])
+    st.write("Hora:", propuesta["hora"])
+    st.write("Lugar:", propuesta["lugar"])
+    st.write("Estado:", propuesta["estado"])
 
     st.subheader("Responder")
 
     if st.button("Sí"):
-        st.session_state["estado"] = "Confirmada"
+        encuentro_ref.update({
+            "estado": "Confirmada"
+        })
+        st.rerun()
 
     if st.button("No"):
-        st.session_state["estado"] = "Rechazada"
+        encuentro_ref.update({
+            "estado": "Rechazada"
+        })
+        st.rerun()
 
     if st.button("Otro horario"):
-        st.session_state["estado"] = "Nueva propuesta"
+        encuentro_ref.update({
+            "estado": "Nueva propuesta"
+        })
+        st.rerun()
