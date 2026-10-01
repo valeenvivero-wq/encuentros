@@ -2,12 +2,12 @@ importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js
 importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js");
 
 firebase.initializeApp({
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
+  apiKey: "AIzaSyCZI-gW7tOPiz7jEFF1KTLejQcJM9jncGM",
+  authDomain: "encuentros-e9cdb.firebaseapp.com",
   projectId: "encuentros-e9cdb",
-  storageBucket: "TU_STORAGE_BUCKET",
+  storageBucket: "encuentros-e9cdb.firebasestorage.app",
   messagingSenderId: "56539390412",
-  appId: "TU_APP_ID"
+  appId: "1:56539390412:web:3e3a075d48811e07c67d69"
 });
 
 const messaging = firebase.messaging();
