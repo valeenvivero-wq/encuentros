@@ -4,7 +4,11 @@ from firebase_admin import credentials, firestore
 
 # Conectar con Firebase
 if not firebase_admin._apps:
-    cred = credentials.Certificate(dict(st.secrets["firebase"]))
+    datos_firebase = dict(st.secrets["firebase"])
+
+    datos_firebase["private_key"] = datos_firebase["private_key"].replace("\\n", "\n")
+
+    cred = credentials.Certificate(datos_firebase)
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
