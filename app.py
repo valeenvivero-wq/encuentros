@@ -17,11 +17,58 @@ encuentro_ref = db.collection("encuentros").document("actual")
 
 st.title("Encuentros")
 
+# Leer siempre el estado actual de Firebase
+documento = encuentro_ref.get()
+
+if documento.exists:
+    propuesta = documento.to_dict()
+    estado_actual = propuesta.get("estado", "Pendiente")
+else:
+    propuesta = None
+    estado_actual = None
+
+
+# -----------------------------
+# AVISOS
+# -----------------------------
+
+if propuesta:
+
+    if estado_actual == "Pendiente":
+        st.info("Hay una propuesta pendiente de respuesta.")
+
+    elif estado_actual == "Confirmada":
+        st.success("El encuentro fue confirmado.")
+
+    elif estado_actual == "Rechazada":
+        st.warning("La propuesta fue rechazada.")
+
+    elif estado_actual == "Nueva propuesta":
+        st.info("Te propusieron un nuevo horario.")
+
+
+# -----------------------------
+# ACTUALIZAR
+# -----------------------------
+
+if st.button("Actualizar", key="actualizar"):
+
+    st.rerun()
+
+
+st.divider()
+
+
+# -----------------------------
+# MODO
+# -----------------------------
+
 modo = st.radio(
     "¿Qué querés hacer?",
     ["Proponer un encuentro", "Responder a un encuentro"],
     key="modo"
 )
+
 
 # -----------------------------
 # PROPONER
@@ -31,11 +78,25 @@ if modo == "Proponer un encuentro":
 
     st.subheader("Proponer un encuentro")
 
-    fecha = st.text_input("Fecha", key="fecha_propuesta")
-    hora = st.text_input("Hora", key="hora_propuesta")
-    lugar = st.text_input("Lugar", key="lugar_propuesto")
+    fecha = st.text_input(
+        "Fecha",
+        key="fecha_propuesta"
+    )
 
-    if st.button("Enviar propuesta", key="enviar_propuesta"):
+    hora = st.text_input(
+        "Hora",
+        key="hora_propuesta"
+    )
+
+    lugar = st.text_input(
+        "Lugar",
+        key="lugar_propuesto"
+    )
+
+    if st.button(
+        "Enviar propuesta",
+        key="enviar_propuesta"
+    ):
 
         encuentro_ref.set({
             "fecha": fecha,
@@ -46,6 +107,8 @@ if modo == "Proponer un encuentro":
 
         st.success("Propuesta enviada.")
 
+        st.rerun()
+
 
 # -----------------------------
 # RESPONDER
@@ -55,11 +118,7 @@ elif modo == "Responder a un encuentro":
 
     st.subheader("Propuesta recibida")
 
-    documento = encuentro_ref.get()
-
-    if documento.exists:
-
-        propuesta = documento.to_dict()
+    if propuesta:
 
         st.write("Fecha:", propuesta["fecha"])
         st.write("Hora:", propuesta["hora"])
@@ -70,29 +129,46 @@ elif modo == "Responder a un encuentro":
 
         st.subheader("¿Podés encontrarte en ese momento?")
 
-        if st.button("Sí", key="aceptar_encuentro"):
+        if st.button(
+            "Sí",
+            key="aceptar_encuentro"
+        ):
 
             encuentro_ref.update({
                 "estado": "Confirmada"
             })
 
             st.success("Encuentro confirmado.")
+
             st.rerun()
 
-        if st.button("No", key="rechazar_encuentro"):
+
+        if st.button(
+            "No",
+            key="rechazar_encuentro"
+        ):
 
             encuentro_ref.update({
                 "estado": "Rechazada"
             })
 
             st.warning("Encuentro rechazado.")
+
             st.rerun()
 
-        if st.button("Otro horario", key="otro_horario"):
+
+        if st.button(
+            "Otro horario",
+            key="otro_horario"
+        ):
 
             st.session_state["mostrar_otro_horario"] = True
 
-        if st.session_state.get("mostrar_otro_horario", False):
+
+        if st.session_state.get(
+            "mostrar_otro_horario",
+            False
+        ):
 
             st.write("Proponer otro horario")
 
@@ -117,9 +193,18 @@ elif modo == "Responder a un encuentro":
                     "estado": "Nueva propuesta"
                 })
 
-                st.success("Nuevo horario enviado.")
+                st.success(
+                    "Nuevo horario enviado."
+                )
+
+                st.session_state[
+                    "mostrar_otro_horario"
+                ] = False
+
                 st.rerun()
 
     else:
 
-        st.info("Todavía no hay ningún encuentro propuesto.")
+        st.info(
+            "Todavía no hay ningún encuentro propuesto."
+        )
