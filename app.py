@@ -47,7 +47,7 @@ def enviar_notificacion(titulo, mensaje):
     tokens_ref = db.collection("fcmTokens").stream()
 
     enviados = 0
-
+    errores = []
     tokens_invalidos = []
 
     for documento in tokens_ref:
@@ -79,6 +79,8 @@ def enviar_notificacion(titulo, mensaje):
 
             texto_error = str(error)
 
+            errores.append(texto_error)
+
             if (
                 "registration-token-not-registered"
                 in texto_error
@@ -88,12 +90,13 @@ def enviar_notificacion(titulo, mensaje):
                 tokens_invalidos.append(documento.id)
 
 
+    # Eliminar tokens que Firebase ya no reconoce
     for token_id in tokens_invalidos:
 
         db.collection("fcmTokens").document(token_id).delete()
 
 
-    return enviados
+    return enviados, errores
 
 
 # ---------------------------------------------------------
@@ -292,7 +295,7 @@ if modo == "Proponer un encuentro":
             })
 
 
-            enviados = enviar_notificacion(
+            enviados, errores = enviar_notificacion(
 
                 "Encuentros",
 
@@ -301,15 +304,28 @@ if modo == "Proponer un encuentro":
             )
 
 
-            st.success(
-                "La propuesta fue enviada."
-            )
-
-
             if enviados > 0:
 
-                st.info(
-                    "La notificación fue enviada al celular."
+                st.success(
+                    "La propuesta fue enviada y la notificación fue enviada al celular."
+                )
+
+            elif errores:
+
+                st.warning(
+                    "La propuesta fue guardada, pero Firebase no pudo enviar la notificación."
+                )
+
+                with st.expander("Ver error de Firebase"):
+
+                    for error in errores:
+
+                        st.code(error)
+
+            else:
+
+                st.warning(
+                    "La propuesta fue guardada, pero no hay ningún token de celular registrado."
                 )
 
 
@@ -370,7 +386,7 @@ else:
                 })
 
 
-                enviar_notificacion(
+                enviados, errores = enviar_notificacion(
 
                     "Encuentros",
 
@@ -379,9 +395,29 @@ else:
                 )
 
 
-                st.success(
-                    "El encuentro fue confirmado."
-                )
+                if enviados > 0:
+
+                    st.success(
+                        "El encuentro fue confirmado y se envió la notificación."
+                    )
+
+                elif errores:
+
+                    st.warning(
+                        "El encuentro fue confirmado, pero Firebase no pudo enviar la notificación."
+                    )
+
+                    with st.expander("Ver error de Firebase"):
+
+                        for error in errores:
+
+                            st.code(error)
+
+                else:
+
+                    st.warning(
+                        "El encuentro fue confirmado, pero no hay ningún token registrado."
+                    )
 
 
                 st.rerun()
@@ -397,7 +433,7 @@ else:
                 })
 
 
-                enviar_notificacion(
+                enviados, errores = enviar_notificacion(
 
                     "Encuentros",
 
@@ -406,9 +442,29 @@ else:
                 )
 
 
-                st.warning(
-                    "La propuesta fue rechazada."
-                )
+                if enviados > 0:
+
+                    st.success(
+                        "La propuesta fue rechazada y se envió la notificación."
+                    )
+
+                elif errores:
+
+                    st.warning(
+                        "La propuesta fue rechazada, pero Firebase no pudo enviar la notificación."
+                    )
+
+                    with st.expander("Ver error de Firebase"):
+
+                        for error in errores:
+
+                            st.code(error)
+
+                else:
+
+                    st.warning(
+                        "La propuesta fue rechazada, pero no hay ningún token registrado."
+                    )
 
 
                 st.rerun()
@@ -474,7 +530,7 @@ else:
                         })
 
 
-                        enviar_notificacion(
+                        enviados, errores = enviar_notificacion(
 
                             "Encuentros",
 
@@ -483,9 +539,29 @@ else:
                         )
 
 
-                        st.success(
-                            "El nuevo horario fue enviado."
-                        )
+                        if enviados > 0:
+
+                            st.success(
+                                "El nuevo horario fue enviado y se envió la notificación."
+                            )
+
+                        elif errores:
+
+                            st.warning(
+                                "El nuevo horario fue guardado, pero Firebase no pudo enviar la notificación."
+                            )
+
+                            with st.expander("Ver error de Firebase"):
+
+                                for error in errores:
+
+                                    st.code(error)
+
+                        else:
+
+                            st.warning(
+                                "El nuevo horario fue guardado, pero no hay ningún token registrado."
+                            )
 
 
                         st.session_state[
